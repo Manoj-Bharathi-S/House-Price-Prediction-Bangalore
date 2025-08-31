@@ -88,7 +88,10 @@ with st.form("prediction_form"):
         bath = st.selectbox('Number of Bathrooms', [1, 2, 3, 4, 5])
         location = st.selectbox('Location', get_location_names())
     
-    submitted = st.form_submit_button("Predict Price")
+    # Center the submit button with adjusted spacing
+    _, center_col, _ = st.columns([1.5, 1, 1.5])
+    with center_col:
+        submitted = st.form_submit_button("Predict Price")
 
 # Make prediction when form is submitted
 if submitted:
