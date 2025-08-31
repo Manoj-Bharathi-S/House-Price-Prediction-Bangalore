@@ -26,25 +26,47 @@ function onClickedEstimatePrice() {
   var location = document.getElementById("uiLocations");
   var estPrice = document.getElementById("uiEstimatedPrice");
 
-  // var url = "http://127.0.0.1:5000/predict_home_price"; //Use this if you are NOT using nginx which is first 7 tutorials
-  var url = "/api/predict_home_price"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
+  var url = "/predict_home_price"; // Using relative URL since we're serving from the same domain
 
-  $.post(url, {
+  const requestData = {
       total_sqft: parseFloat(sqft.value),
       bhk: bhk,
       bath: bathrooms,
       location: location.value
-  },function(data, status) {
-      console.log(data.estimated_price);
-      estPrice.innerHTML = "<h2>" + data.estimated_price.toString() + " Lakh</h2>";
-      console.log(status);
+  };
+  
+  console.log('Sending request to:', url);
+  console.log('Request data:', requestData);
+  
+  $.ajax({
+      url: url,
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(requestData),
+      success: function(data, status, xhr) {
+          console.log('Response status:', status);
+          console.log('Response data:', data);
+          if (data.estimated_price !== undefined) {
+              estPrice.innerHTML = "<h2>" + data.estimated_price.toString() + " Lakh</h2>";
+          } else if (data.error) {
+              console.error('Server error:', data.error);
+              estPrice.innerHTML = "<h2 style='color:red'>Error: " + data.error + "</h2>";
+          } else {
+              console.error('Unexpected response format:', data);
+              estPrice.innerHTML = "<h2 style='color:red'>Unexpected response from server</h2>";
+          }
+      },
+      error: function(xhr, status, error) {
+          console.error('Request failed:', status, error);
+          console.error('Response text:', xhr.responseText);
+          estPrice.innerHTML = "<h2 style='color:red'>Error: " + status + "</h2>";
+      }
   });
 }
 
 function onPageLoad() {
   console.log( "document loaded" );
-  // var url = "http://127.0.0.1:5000/get_location_names"; // Use this if you are NOT using nginx which is first 7 tutorials
-  var url = "/api/get_location_names"; // Use this if  you are using nginx. i.e tutorial 8 and onwards
+  var url = "/get_location_names"; // Using relative URL since we're serving from the same domain
   $.get(url,function(data, status) {
       console.log("got response for get_location_names request");
       if(data) {
