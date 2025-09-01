@@ -3,6 +3,24 @@ import pickle
 import json
 import numpy as np
 import os
+import sys
+
+def handle_connection_error():
+    """Custom connection error handler"""
+    st.error("⚠️ Connection lost. Please refresh the page to continue using the app.")
+    st.stop()
+
+# Set custom error handler for connection issues
+def handle_streamlit_errors():
+    exception = sys.exc_info()
+    if exception and len(exception) > 1:
+        error_type = str(exception[0].__name__).lower()
+        if 'connection' in error_type or 'http' in error_type or 'streamlit' in error_type:
+            return handle_connection_error()
+    return sys.__excepthook__(*exception)
+
+# Override the default exception handler
+sys.excepthook = handle_streamlit_errors
 
 # Hide Streamlit UI elements
 st.markdown("""
@@ -70,11 +88,19 @@ def get_location_names():
     return __locations
 
 # Load artifacts when the app starts
-load_saved_artifacts()
+try:
+    load_saved_artifacts()
 
-# App UI
-st.title('🏠 Bangalore House Price Predictor')
-st.write('Predict the price of your dream home in Bangalore')
+    # App UI
+    st.title('🏠 Bangalore House Price Predictor')
+    st.write('Predict the price of your dream home in Bangalore')
+
+except Exception as e:
+    if 'connection' in str(e).lower() or 'http' in str(e).lower() or 'streamlit' in str(e).lower():
+        handle_connection_error()
+    else:
+        st.error(f"An error occurred: {str(e)}")
+        st.stop()
 
 # Input form
 with st.form("prediction_form"):
